@@ -72,6 +72,23 @@ footer {text-align: center;color: var(--muted);padding: 22px 16px;font-size: 13p
 .toolbar {align-items: stretch;}
 .toolbar select {width: 100%;}
 .task {padding: 12px;}}
+ .search-container {
+  margin: 12px 0 18px;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+#searchInput:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #3b82f6;
+}
   </style>
 </head>
 
@@ -191,6 +208,17 @@ footer {text-align: center;color: var(--muted);padding: 22px 16px;font-size: 13p
       <div class="toolbar">
         <h2>📝 My Tasks / 我的任务</h2>
 
+       <div class="search-container">
+  <input
+    type="search"
+    id="searchInput"
+    placeholder="Search tasks... / 搜索任务..."
+    aria-label="Search tasks"
+  >
+</div>
+
+<div id="taskList"></div>
+
         <select id="filter" aria-label="Filter tasks">
           <option value="all">All Tasks / 全部任务</option>
           <option value="active">Pending / 未完成</option>
@@ -297,12 +325,23 @@ footer {text-align: center;color: var(--muted);padding: 22px 16px;font-size: 13p
       );
 
       const filter = filterInput.value;
+const searchInput = document.getElementById("searchInput");
+const searchTerm = searchInput.value.trim().toLowerCase();
 
-      const visibleTasks = tasks.filter(task => {
-        if (filter === "active") return !task.completed;
-        if (filter === "completed") return task.completed;
-        return true;
-      });
+const visibleTasks = tasks.filter(task => {
+  // Step 1: Apply the existing status filter
+  // 第一步：保留原本的任务状态筛选
+  if (filter === "active" && task.completed) return false;
+  if (filter === "completed" && !task.completed) return false;
+
+  // Step 2: Apply the search filter
+  // 第二步：加入关键词搜索
+  const title = (task.title || "").toLowerCase();
+  const subject = (task.subject || "").toLowerCase();
+
+  return title.includes(searchTerm) ||
+         subject.includes(searchTerm);
+});
 
       if (visibleTasks.length === 0) {
         taskList.innerHTML = `
@@ -519,6 +558,9 @@ footer {text-align: center;color: var(--muted);padding: 22px 16px;font-size: 13p
 
     // Initial display / 初始显示
     renderTasks();
+   document.getElementById("searchInput").addEventListener("input", () => {
+  renderTasks();
+});
   </script>
 </body>
 </html>
